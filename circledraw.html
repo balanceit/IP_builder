@@ -1,0 +1,73 @@
+<html>
+<head>
+	<script src="script/jquery-latest.js"></script>
+	<script src="script/jquery.ui.core.js"></script> 
+	<script src="script/jquery.ui.widget.js"></script> 
+	<script src="script/jquery.ui.mouse.js"></script> 
+	<script src="script/jquery.ui.draggable.js"></script> 
+	
+	<style>
+
+		.circle {
+			cursor: pointer;
+		}
+	</style>
+</head>
+
+<span id="result">asdfasdfasdf</span>
+
+
+<script type="text/javascript">
+$(document).ready(function() {
+	var total = 0;
+	var x1,x2,y1,y2;
+	$(document).mousedown(function(e) {
+		$("#current").attr({ 
+	    	id: ''
+	    });
+		box = $('<div style="border:1px #FF00FF solid;position:fixed;">').hide();
+		$(document.body).append(box);
+		x1 = e.pageX;
+		y1 = e.pageY;
+			
+		box.attr({id: 'current'}).css({
+			top: e.pageY , //offsets
+			left: e.pageX //offsets
+		}).fadeIn();
+	});
+	$(document).mousemove(function(e) {
+		$("#current").css({
+			width:Math.abs(e.pageX - x1), //offsets
+			height:Math.abs(e.pageY - y1),//offsets
+			'border-radius':Math.abs(Math.abs(e.pageX - x1) / 2),
+			'-moz-border-radius':Math.abs(Math.abs(e.pageX - x1) / 2),
+			'-webkit-border-radius':Math.abs(Math.abs(e.pageX - x1) / 2)
+		}).fadeIn();
+	});
+	$(document).mouseup(function() {
+		$("#current").mousedown(function(e) {
+			e.stopPropagation();
+		});
+		$("#current").mouseover(function(e) {
+			$(this).css('background', 'red');
+		});
+		$("#current").mouseleave(function(e) {
+			$(this).css('background', 'blue');
+		});
+		$("#current").addClass('ui-widget-content');
+		$("#current").draggable();
+		$("#current").attr({id: ++total, class: 'circle'});
+		
+	});
+	
+	$("#result").mouseover(function(e) {
+		$(this).html("there are " + total + " circles");
+		
+	});
+	
+});
+
+	</script>
+
+
+</html>

@@ -1,0 +1,250 @@
+<html>
+<head>
+
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.5.0/jquery.js"></script>
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.9/jquery-ui.js"></script>
+<link rel="stylesheet" type="text/css" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.9/themes/base/jquery-ui.css"/>
+
+	
+	<style>
+
+		.circle {
+			cursor: pointer;
+		}
+		
+		#result {
+			width: 95%;
+			height: 1.5 em;
+			border: 1px solid black;
+			float: left;
+			padding: 4 2 4 1px;
+			margin: 1 0 1 2.5%;
+		}
+		
+		#left {
+			width: 20%;
+			height: 70%;
+			border: 1px solid black;
+			float: left;
+			xpadding: 5px;
+			margin: 1 1 1 2.5%;
+		}
+		
+		#canvas {
+			width: 75%;
+			height: 70%;
+			border: 1px solid black;
+			float: left;
+			xpadding: 1px;
+			margin: 1 0 1 0%;
+		}
+		
+		#log {
+			width: 95%;
+			height: 20%;
+			float: left;
+			padding: 5px;
+			margin: 1 2 1 2.5%;
+		}
+		
+		.drophover {
+
+		}
+	</style>
+</head>
+
+<div id="result"></div>
+<div id="left"></div>
+<div id="canvas"></div>
+<textarea id="log"></textarea>
+
+
+<script type="text/javascript">
+$(document).ready(function() {
+	$("#result").html('ddddd');
+
+	var boxes = splitNB(getUrlVars().nb);
+    for(var i = 0; i < boxes.length; i++) {
+		log("number of " + boxes[i].colour + " boxes to create: " + boxes[i].count);
+		addBoxes(boxes[i].count, $("#left"), boxes[i].colour, total(getUrlVars().nb));
+	}
+    $(".box").droppable({
+    	hoverClass: 'ui-state-highlight',
+    	accept: ".grey",
+		over: function( event, ui ) {
+			$(".ui-draggable-dragging").addClass('over');
+		},
+		out: function( event, ui ) {
+			$(".ui-draggable-dragging").removeClass('over');
+		},
+		drop: function( event, ui ){
+			alert(ui.draggable.hasClass('grey'));
+			if (ui.draggable.hasClass('over') && !ui.draggable.hasClass('grey')){
+				bounce($(this), ui.draggable);
+				
+			}
+		
+		},
+		tolerance: 'touch'
+	});
+
+
+    $(".box").resizable().draggable({ 
+		snap: ".red", 
+		snapMode: "outer",
+		snapTolerance: 40,
+		//grid: [ 20,20 ] ,
+		opacity: 0.35,
+		stack: ".box",
+		//revert: "valid",
+        stop: function(event, ui){
+    	},
+        
+		drag: function(event, ui) {
+		}
+	});
+});
+
+
+function getUrlVars() {
+    var vars = [], hash;
+    var hashes = window.location.href.slice(window.location.href.indexOf('?') + 1).split('&');
+    for(var i = 0; i < hashes.length; i++)  {
+        hash = hashes[i].split('=');
+        vars.push(hash[0]);
+        vars[hash[0]] = hash[1];
+    }
+    return vars;
+}
+
+function bounce(droppable, draggable) {
+	
+	var dropLeft = droppable.offset().left;
+	var dropTop = droppable.offset().top;
+	var dropRight = dropLeft + droppable.width();
+	var dropBottom  = dropTop + droppable.height();
+	
+	var dragLeft = draggable.offset().left;
+	var dragTop = draggable.offset().top;
+	var dragRight = dragLeft + draggable.width();
+	var dragBottom = dragTop + draggable.height();
+		
+	var left = false;
+	var top = false;
+	var leftDif = (dropLeft - dragRight) - (dragLeft - dropRight);
+	var topDif = (dropTop - dragBottom) - (dragTop - dropBottom); 
+	if (leftDif >= 0){
+		left = true;
+	}
+	if (topDif <= 0){
+		top = true;
+	}
+	var horizantal = false;
+	
+	if (Math.abs(leftDif) > Math.abs(topDif)){
+		horizantal = true;
+	}
+
+	var chainable = false; 
+	var extra = 15;
+	if (droppable.css('background-color') == draggable.css('background-color')){
+		extra = 4;
+		chainable = true;
+	}
+	
+	if (chainable){
+		horizantal = true;
+		draggable.offset({top: dropTop});
+	}
+	
+	if (horizantal){
+		if(left){
+			draggable.offset({left: dropLeft - draggable.width() - extra});
+		} else {
+			draggable.offset({left: dropRight + extra});
+		}
+	} else {
+		if(top){
+			draggable.offset({top: dropBottom + extra });
+		} else {
+			draggable.offset({top: dropTop - draggable.height() - extra});
+		}
+	}
+	
+		
+}
+
+function splitNB(nb) {
+    var vars = [], hash, obj;
+    var numberColours = nb.split(';');
+    for(var i = 0; i < numberColours.length; i++) {
+        hash = numberColours[i].split(',');
+        obj = {};
+        obj['colour'] = hash[1];
+        obj['count'] = hash[0];
+
+        vars.push(obj);
+    }
+    return vars;
+}
+
+function total(nb) {
+    var total = 0, hash, obj;
+    var numberColours = nb.split(';');
+    for(var i = 0; i < numberColours.length; i++) {
+        hash = numberColours[i].split(',');
+        total+=parseInt(hash[0]);
+    }
+    return total;
+}
+
+function addBoxes(count, container, colour, total) {
+	var ids = [];
+	var box,id,x,y,h,w = null;
+	h = container.height()/total - 6;
+	w = container.width() - 15;
+	x = container.offset().left;
+	
+	var totalBoxes;
+	var width = container.width();
+	var parentWidth = container.offsetParent().width();
+	var percent = 100*width/parentWidth-3 + "%";
+
+    for(var i = 0; i < count; i++) {
+        
+        box = $('<div style="background-color:' + colour + '; border:2px #grey solid;position:fixed;">').hide();
+		container.append(box);
+
+		
+		totalBoxes = $(".box").length;
+		id = "box_" + totalBoxes;
+		if (totalBoxes==0){
+			y = container.offset().top;
+		} else {
+			j = totalBoxes - 1;
+			//alert(j);
+			y = $("#box_"+j).offset().top + h;
+		}
+		log("adding box: " + id + " coords: (" + x + "," + y + ") -- height: " + h  + "-- width: " + w );
+		
+		box.attr({id: id,class: 'box ' + colour}).css({
+			width:percent, //offsets
+			height:h,//offsets
+			top:y,
+			margin:5
+		}).fadeIn();
+		
+		ids.push(id);
+        
+    }
+    return ids;
+}
+
+function log(message, level) {
+	$("#log").text($("#log").text() + '\n' + message);
+}
+
+	</script>
+
+
+</html>
